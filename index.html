@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kids O'Day Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h2 { margin-bottom: 20px; }
+    .card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; background: #fff; }
+    #output { margin-top: 20px; }
+    #loginButton { margin-bottom: 20px; }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <h2>Your Dashboard</h2>
+  <div id="loginButton"></div>
+  <div id="output">Loading...</div>
+
+  <script>
+    // Render dashboard records
+    function renderDashboard(data) {
+      const output = document.getElementById("output");
+      if (!data || data.error) {
+        output.innerHTML = `<p style="color:red;">${data?.error || 'Unable to load dashboard'}</p>`;
+        return;
+      }
+
+      let html = `<p><strong>Signed in as:</strong> ${data.email}</p>`;
+
+      if (!data.records || data.records.length === 0) {
+        html += "<p>No data available for your account.</p>";
+      } else {
+        data.records.forEach(r => {
+          html += `<div class="card">`;
+          for (let key in r) {
+            html += `<p><strong>${key}:</strong> ${r[key]}</p>`;
+          }
+          html += `</div>`;
+        });
+      }
+
+      output.innerHTML = html;
+    }
+
+    // Handle Google Sign-In response
+    function handleLogin(response) {
+      try {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        const email = payload.email;
+        if (!email) {
+          document.getElementById("output").innerHTML = "<p style='color:red;'>Email not detected. Cannot load dashboard.</p>";
+          return;
+        }
+
+        // Call your Apps Script web app (replace with your URL)
+        const url = "https://script.google.com/macros/s/AKfycbyeKrGPdEFxzq312Z4lnjYKjvhupSL2SkGos1LtzbSmO1YVWWFNpEHY29248uYN_-xHgA/exec?email=" + encodeURIComponent(email);
+        fetch(url)
+          .then(res => res.json())
+          .then(renderDashboard)
+          .catch(err => {
+            document.getElementById("output").innerHTML = "<p style='color:red;'>Error fetching dashboard</p>";
+            console.error(err);
+          });
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("output").innerHTML = "<p style='color:red;'>Error processing login</p>";
+      }
+    }
+
+    // Initialize Google Sign-In on page load
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: "656751987892-s5h4b3h7aq6rl63ut7pl6hgm3d2vr46p.apps.googleusercontent.com", // <-- Replace with your OAuth Client ID
+        callback: handleLogin
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById("loginButton"),
+        { theme: "outline", size: "large" }
+      );
+
+      google.accounts.id.prompt(); // optional auto prompt
+    };
+  </script>
+</body>
+</html>
