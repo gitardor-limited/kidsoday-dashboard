@@ -59,7 +59,6 @@
             for (let key in record) {
               const value = record[key];
 
-              // ✅ SPECIAL HANDLING FOR COURSE URL
               if (key === "Course URL" && value) {
                 html += `
                   <p>
@@ -105,7 +104,9 @@
         google.accounts.id.initialize({
           client_id:
             "656751987892-s5h4b3h7aq6rl63ut7pl6hgm3d2vr46p.apps.googleusercontent.com",
-          callback: handleLogin
+          callback: handleLogin,
+          auto_select: true,
+          cancel_on_tap_outside: false
         });
 
         google.accounts.id.renderButton(
@@ -113,6 +114,8 @@
           { theme: "outline", size: "large" }
         );
 
+        // ✅ THIS IS THE KEY LINE
+        google.accounts.id.prompt();
       };
     </script>
   </body>
