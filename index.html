@@ -203,7 +203,7 @@ function render(data){
     html += `
       <div class="course">
         <div class="course-title">${esc(r["Course Title"])}</div> 
-        <div class="course-meta">Course Code: ${esc(r["Course code"])}</div>
+        <div class="course-meta">Course Code: ${esc(r["Course Code"])}</div>
         ${r["Course URL"]
           ? `<a class="btn" href="${esc(r["Course URL"])}" target="_blank">Go To Level</a>`
           : ""}
@@ -254,6 +254,7 @@ window.onload = ()=>{
 </script>
 </body>
 </html>
+
 
 
 
