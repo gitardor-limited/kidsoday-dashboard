@@ -188,7 +188,7 @@ function render(data){
     <div class="profile">
       <div class="avatar">${esc(initials)}</div>
       <div>
-        <div class="profile-name">${esc(p["Name"])}</div>
+        <div class="profile-name">${esc(p["Prefix"] ? p["Prefix"] + " " : "")}${esc(p["Name"])}</div>
         <div class="profile-email">${esc(data.email)}</div>
         <div class="meta">
           <div class="meta-item">Student ID: ${esc(p["Student ID"])}</div>
@@ -254,6 +254,7 @@ window.onload = ()=>{
 </script>
 </body>
 </html>
+
 
 
 
