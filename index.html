@@ -224,11 +224,23 @@ function load(email){
     .then(data => {
       // Check if the email is not in the sheet
       if (!data.records || data.records.length === 0) {
+        // Show the status message
         el("status").textContent = "No Class Enrolled";
-        el("content").style.display = "none"; // hide content section
-        el("logout").style.display = "block";  // still show logout
+
+        // Hide the normal content section
+        el("content").style.display = "block"; // show content area for button
+        el("content").innerHTML = `
+          <a class="btn" href="https://www.kidsoday.com/explore-classes" target="_blank">
+            Explore
+          </a>
+        `;
+
+        // Show the logout button
+        el("logout").style.display = "block";
+
       } else {
-        render(data); // normal render
+        // Normal render if records exist
+        render(data);
       }
     })
     .catch(err => {
@@ -266,6 +278,7 @@ window.onload = ()=>{
 </script>
 </body>
 </html>
+
 
 
 
