@@ -1,102 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>User Dashboard</title>
+  <meta charset="UTF-8" />
+  <title>KidsO'Day Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Identity -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
+    :root {
+      --accent:#1a73e8;
+      --bg:#f7f9fc;
+      --card:#ffffff;
+      --border:#e6e9ef;
+      --muted:#666;
+    }
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      margin:0;
+      font-family: Inter, Arial, sans-serif;
+      background:var(--bg);
+      color:#222;
+    }
+    .wrap {
+      max-width:960px;
+      margin:24px auto;
+      padding:16px;
     }
     .card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 6px;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:20px;
+      box-shadow:0 6px 20px rgba(0,0,0,.04);
     }
-    a.button-link {
-      display: inline-block;
-      padding: 8px 14px;
-      background: #1a73e8;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 4px;
-      font-weight: bold;
+    h1 {
+      margin:0;
+      font-size:22px;
+      color:var(--accent);
     }
-  </style>
+    .muted {
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+    }
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+    .profile {
+      display:flex;
+      gap:16px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .avatar {
+      width:72px;
+      height:72px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#8ab4f8,#1a73e8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-weight:800;
+      font-size:24px;
+    }
+    .profile-name {
+      font-size:20px;
+      font-weight:800;
+    }
+    .profile-email {
+      font-size:14px;
+      word-break:break-all;
+    }
+    .meta {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .meta-item {
+      background:#f8fafc;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:13px;
+    }
+    .divider {
+      height:1px;
+      background:var(--border);
+      margin:22px 0;
+    }
+
+    .course {
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+      margin-bottom:12px;
+      background:#fff;
+    }
+    .course-title {
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    .course-meta {
+      font-size:13px;
+      color:#555;
+    }
+    .btn {
+      display:inline-block;
+      margin-top:8px;
+      background:var(--accent);
+      color:#fff;
+      padding:8px 14px;
+      border-radius:8px;
+      font-weight:700;
+      text-decoration:none;
+    }
+
+    #login { margin-top:14px; }
+    #logout { margin-top:18px; font-size:13px; }
+    #logout a { color:#555; text-decoration:none; }
+  </style>
 </head>
 
 <body>
-  <h2>Your Dashboard</h2>
-  <div id="output">Checking session…</div>
+<div class="wrap">
+  <div class="card">
+    <h1>KidsO'Day Dashboard</h1>
+    <div id="status" class="muted">Checking session…</div>
+
+    <div id="login"></div>
+    <div id="content" style="display:none;"></div>
+
+    <div id="logout" style="display:none;">
+      <a href="#" onclick="signOut();return false;">Sign out</a>
+    </div>
+  </div>
+</div>
 
 <script>
-  function renderDashboard(data) {
-    const output = document.getElementById("output");
+/* ===== CONFIG (ALREADY FILLED) ===== */
+const CLIENT_ID =
+  "656751987892-s5h4b3h7aq6rl63ut7pl6hgm3d2vr46p.apps.googleusercontent.com";
 
-    if (!data || data.error) {
-      output.innerHTML = `<p style="color:red;">${data.error}</p>`;
-      return;
-    }
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyeKrGPdEFxzq312Z4lnjYKjvhupSL2SkGos1LtzbSmO1YVWWFNpEHY29248uYN_-xHgA/exec";
 
-    let html = `<p><strong>Signed in as:</strong> ${data.email}</p>`;
+const SESSION_DAYS = 30;
 
-    if (!data.records.length) {
-      html += "<p>No data available.</p>";
-    } else {
-      data.records.forEach(r => {
-        html += `<div class="card">`;
-        for (let k in r) {
-          if (k === "Course URL") {
-            html += `
-              <p><strong>Course:</strong><br>
-              <a class="button-link" href="${r[k]}" target="_blank">GoToLevel</a></p>
-            `;
-          } else {
-            html += `<p><strong>${k}:</strong> ${r[k]}</p>`;
-          }
-        }
-        html += `</div>`;
-      });
-    }
+/* ===== Helpers ===== */
+const el = id => document.getElementById(id);
+const esc = s => (s||"").toString().replace(/[&<>]/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;" }[m]));
 
-    output.innerHTML = html;
-  }
+/* ===== Session ===== */
+function saveSession(email){
+  localStorage.setItem("kidsoday_email", email);
+  localStorage.setItem("kidsoday_until", Date.now() + SESSION_DAYS*86400000);
+}
+function getSession(){
+  const e = localStorage.getItem("kidsoday_email");
+  const u = localStorage.getItem("kidsoday_until");
+  if(e && u && Date.now() < +u) return e;
+  return null;
+}
+function signOut(){
+  localStorage.clear();
+  location.reload();
+}
 
-  function handleLogin(response) {
-    const payload = JSON.parse(atob(response.credential.split(".")[1]));
-    const email = payload.email;
+/* ===== Dashboard Render ===== */
+function render(data){
+  const c = el("content");
+  const rec = data.records;
+  const p = rec[0];
 
-    fetch(
-      "https://script.google.com/macros/s/AKfycbyeKrGPdEFxzq312Z4lnjYKjvhupSL2SkGos1LtzbSmO1YVWWFNpEHY29248uYN_-xHgA/exec?email=" +
-      encodeURIComponent(email)
-    )
-      .then(r => r.json())
-      .then(renderDashboard)
-      .catch(() => {
-        document.getElementById("output").innerHTML =
-          "<p style='color:red;'>Failed to load dashboard</p>";
-      });
-  }
+  const initials = (p["Name"]||"")
+    .split(" ")
+    .map(x=>x[0])
+    .join("")
+    .slice(0,2)
+    .toUpperCase();
 
-  window.onload = () => {
-    google.accounts.id.initialize({
-      client_id: "656751987892-s5h4b3h7aq6rl63ut7pl6hgm3d2vr46p.apps.googleusercontent.com",
-      callback: handleLogin,
-      auto_select: true
+  let html = `
+    <div class="profile">
+      <div class="avatar">${esc(initials)}</div>
+      <div>
+        <div class="profile-name">${esc(p["Name"])}</div>
+        <div class="profile-email">${esc(data.email)}</div>
+        <div class="meta">
+          <div class="meta-item">Student ID: ${esc(p["Student ID"])}</div>
+          <div class="meta-item">WhatsApp: ${esc(p["WhatsApp"])}</div>
+          <div class="meta-item">Country: ${esc(p["Country"])}</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <h3>Enrolled Courses</h3>
+  `;
+
+  rec.forEach(r=>{
+    html += `
+      <div class="course">
+        <div class="course-title">${esc(r["Course Title"])}</div>
+        <div class="course-meta">Course Code: ${esc(r["Course code"])}</div>
+        ${r["Course URL"]
+          ? `<a class="btn" href="${esc(r["Course URL"])}" target="_blank">GoToLevel</a>`
+          : ""}
+      </div>
+    `;
+  });
+
+  c.innerHTML = html;
+  c.style.display = "block";
+  el("logout").style.display = "block";
+  el("status").textContent = "Welcome back";
+}
+
+/* ===== Load Data ===== */
+function load(email){
+  fetch(API_URL + "?email=" + encodeURIComponent(email))
+    .then(r=>r.json())
+    .then(render)
+    .catch(()=> el("status").textContent="Failed to load dashboard");
+}
+
+/* ===== Google Sign-In ===== */
+function onGoogle(res){
+  const payload = JSON.parse(atob(res.credential.split(".")[1]));
+  saveSession(payload.email);
+  el("login").style.display="none";
+  load(payload.email);
+}
+
+window.onload = ()=>{
+  const s = getSession();
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: onGoogle
+  });
+
+  if(s){
+    el("login").style.display="none";
+    load(s);
+  } else {
+    el("status").textContent="Please sign in to continue";
+    google.accounts.id.renderButton(el("login"), {
+      theme:"outline",
+      size:"large"
     });
-
-    // ✅ One Tap ONLY
-    google.accounts.id.prompt(notification => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        document.getElementById("output").innerHTML =
-          "<p>Please sign in with Google to view your dashboard.</p>";
-      }
-    });
-  };
+  }
+};
 </script>
 </body>
 </html>
