@@ -125,7 +125,7 @@
 <body>
 <div class="wrap">
   <div class="card">
-    <h1>KidsO'Day Dashboard</h1>
+    <h1>Kids O'Day Dashboard</h1>
     <div id="status" class="muted">Checking session…</div>
 
     <div id="login"></div>
@@ -194,7 +194,7 @@ function render(data){
       </div>
     </div>
     <div class="divider"></div>
-    <h3>Enrolled Courses</h3>
+    <h3>Enrolled Level(s)</h3>
   `;
 
   rec.forEach(r=>{
@@ -203,7 +203,7 @@ function render(data){
         <div class="course-title">${esc(r["Course Title"])}</div>
         <div class="course-meta">Course Code: ${esc(r["Course code"])}</div>
         ${r["Course URL"]
-          ? `<a class="btn" href="${esc(r["Course URL"])}" target="_blank">GoToLevel</a>`
+          ? `<a class="btn" href="${esc(r["Course URL"])}" target="_blank">Go To Level</a>`
           : ""}
       </div>
     `;
@@ -252,4 +252,5 @@ window.onload = ()=>{
 </script>
 </body>
 </html>
+
 
