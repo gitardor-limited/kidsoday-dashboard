@@ -220,9 +220,21 @@ function render(data){
 /* ===== Load Data ===== */
 function load(email){
   fetch(API_URL + "?email=" + encodeURIComponent(email))
-    .then(r=>r.json())
-    .then(render)
-    .catch(()=> el("status").textContent="Failed to load dashboard");
+    .then(r => r.json())
+    .then(data => {
+      // Check if the email is not in the sheet
+      if (!data.records || data.records.length === 0) {
+        el("status").textContent = "No Class Enrolled";
+        el("content").style.display = "none"; // hide content section
+        el("logout").style.display = "block";  // still show logout
+      } else {
+        render(data); // normal render
+      }
+    })
+    .catch(err => {
+      console.error("Dashboard load error:", err);
+      el("status").textContent = "Failed to load dashboard";
+    });
 }
 
 /* ===== Google Sign-In ===== */
@@ -254,6 +266,7 @@ window.onload = ()=>{
 </script>
 </body>
 </html>
+
 
 
 
