@@ -223,7 +223,7 @@ function render(data){
       <div class="course-meta">Class Code: ${esc(r["Class Code"])}</div>
       ${
         r["Course URL"]
-        ? `<a class="btn" href="${esc(r["Course URL"])}" onclick="window.top.location.href=this.href; return false;">Go To Level</a>`
+        ? `<a class="btn" href="${esc(r["Course URL"])}" target="_top">Go To Level</a>`
         : ""
       }
     </div>
@@ -301,6 +301,7 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
 
 
 
